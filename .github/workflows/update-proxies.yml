@@ -1,0 +1,36 @@
+name: Update proxies.txt
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download proxies.txt from Gist
+        run: |
+          curl -L --fail \
+            "https://gist.githubusercontent.com/SlavaKat/2d75a18830db8315ee79d58f5ee62e30/raw/" \
+            -o proxies.txt
+
+      - name: Check and commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- proxies.txt; then
+            echo "proxies.txt has not changed"
+          else
+            git add proxies.txt
+            git commit -m "Update proxies.txt"
+            git push
+          fi
