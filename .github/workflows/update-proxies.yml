@@ -3,7 +3,7 @@ name: Update proxies.txt
 
 on:
   schedule:
-    - cron: "0 3 * * *"
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -19,25 +19,67 @@ jobs:
 
       - name: Download source lists
         run: |
-          curl -L --fail \
-            "https://gist.githubusercontent.com/SlavaKat/2d75a18830db8315ee79d58f5ee62e30/raw/" \
-            -o source1.txt
+          curl -L --fail "https://gist.githubusercontent.com/SlavaKat/2d75a18830db8315ee79d58f5ee62e30/raw/" -o source1.txt
+          curl -L --fail "https://github.com/terik21/HiddifySubs-VlessKeys/raw/refs/heads/main/main" -o source2.txt
 
-          curl -L --fail \
-            "https://github.com/terik21/HiddifySubs-VlessKeys/raw/refs/heads/main/main" \
-            -o source2.txt
-
-      - name: Merge, filter and remove duplicates
+      - name: Process lists
         run: |
-          cat source1.txt source2.txt \
-            | grep -E '^(vless|vmess|trojan|ss|ssr|hysteria|hysteria2)://' \
-            | grep -Eiv '(🇷🇺|Россия|\bRU\b|BRIDGE|LTE)' \
-            | sed 's/[[:space:]]*-[[:space:]]*[0-9]+[[:space:]]*%F0%9F%87%.*$//' \
-            | sort -u \
-            > proxies.txt
+          python3 <<'PY'
+          from urllib.parse import unquote
+          import re
 
-          echo "Result:"
-          wc -l proxies.txt
+          sources = ["source1.txt", "source2.txt"]
+          result = set()
+
+          exclude = re.compile(
+              r'(🇷🇺|Россия|\bRU\b|BRIDGE|LTE)',
+              re.IGNORECASE
+          )
+
+          protocols = (
+              "vless://",
+              "vmess://",
+              "trojan://",
+              "ss://",
+              "ssr://",
+              "hysteria://",
+              "hysteria2://"
+          )
+
+          for filename in sources:
+              with open(filename, "r", encoding="utf-8", errors="ignore") as f:
+                  for line in f:
+                      line = line.strip()
+
+                      if not line:
+                          continue
+
+                      # Декодируем URL-кодированные символы
+                      decoded = unquote(line)
+
+                      # Оставляем только реальные proxy-ссылки
+                      if not decoded.startswith(protocols):
+                          continue
+
+                      # Убираем хвост вида " - 123 🇺🇸"
+                      decoded = re.sub(
+                          r'\s+-\s+\d+\s+[\U0001F1E6-\U0001F1FF]{2}\s*$',
+                          '',
+                          decoded
+                      ).strip()
+
+                      # Применяем исключения
+                      if exclude.search(decoded):
+                          continue
+
+                      result.add(decoded)
+
+          with open("proxies.txt", "w", encoding="utf-8") as f:
+              for proxy in sorted(result):
+                  f.write(proxy + "\n")
+
+          print(f"Всего прокси: {len(result)}")
+          PY
 
       - name: Check and commit changes
         run: |
