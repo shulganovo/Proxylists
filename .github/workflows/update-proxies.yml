@@ -1,3 +1,4 @@
+```yaml
 name: Update proxies.txt
 
 on:
@@ -16,11 +17,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download proxies.txt from Gist
+      - name: Download source lists
         run: |
           curl -L --fail \
             "https://gist.githubusercontent.com/SlavaKat/2d75a18830db8315ee79d58f5ee62e30/raw/" \
-            -o proxies.txt
+            -o source1.txt
+
+          curl -L --fail \
+            "https://github.com/terik21/HiddifySubs-VlessKeys/raw/refs/heads/main/main" \
+            -o source2.txt
+
+      - name: Merge, filter and remove duplicates
+        run: |
+          cat source1.txt source2.txt \
+            | grep -E '^(vless|vmess|trojan|ss|ssr|hysteria|hysteria2)://' \
+            | grep -Eiv '(🇷🇺|Россия|\bRU\b|BRIDGE|LTE)' \
+            | sed 's/[[:space:]]*-[[:space:]]*[0-9]+[[:space:]]*%F0%9F%87%.*$//' \
+            | sort -u \
+            > proxies.txt
+
+          echo "Result:"
+          wc -l proxies.txt
 
       - name: Check and commit changes
         run: |
@@ -34,3 +51,4 @@ jobs:
             git commit -m "Update proxies.txt"
             git push
           fi
+```
