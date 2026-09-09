@@ -2,7 +2,7 @@ name: Update proxies.txt
 
 on:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: "0 3 * * *"
   workflow_dispatch:
 
 permissions:
@@ -16,37 +16,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Gist
+      - name: Download proxies.txt from Gist
         run: |
           curl -L --fail \
             "https://gist.githubusercontent.com/SlavaKat/2d75a18830db8315ee79d58f5ee62e30/raw/" \
-            -o source1.txt
+            -o proxies.txt
 
-      - name: Download GitHub list
-        run: |
-          curl -L --fail \
-            "https://github.com/terik21/HiddifySubs-VlessKeys/raw/refs/heads/main/main" \
-            -o source2.txt
-
-      - name: Create proxies.txt
-        run: |
-          cat source1.txt source2.txt > combined.txt
-
-          grep -E '^(vless|vmess|trojan|ss|ssr|hysteria|hysteria2)://' combined.txt \
-            | grep -Eiv '(🇷🇺|Россия|\bRU\b|BRIDGE|LTE)' \
-            | sort -u \
-            > proxies.txt
-
-          echo "Количество прокси:"
-          wc -l proxies.txt
-
-      - name: Commit changes
+      - name: Check and commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           if git diff --quiet -- proxies.txt; then
-            echo "Изменений нет"
+            echo "proxies.txt has not changed"
           else
             git add proxies.txt
             git commit -m "Update proxies.txt"
