@@ -19,7 +19,7 @@ jobs:
       - name: Download list
         run: |
           curl -L --fail \
-            "https://gist.githubusercontent.com/SlavaKat/2d75a18830db8315ee79d58f5ee62e30/raw/" \
+            "https://gitverse.ru/api/repos/SlavaKat/FreeProxyNova/raw/branch/master/🆓ProxyNova ❯ 🗽🕊✊ Ручной выбор" \
             -o proxies.txt
 
       - name: Filter list
