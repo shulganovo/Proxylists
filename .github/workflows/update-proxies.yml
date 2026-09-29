@@ -19,7 +19,13 @@ jobs:
       - name: Download list
         run: |
           curl -L --fail \
-            "https://gitverse.ru/api/repos/SlavaKat/FreeProxyNova/raw/branch/master/🆓ProxyNova ❯ 🗽🕊✊ Ручной выбор" \
+            "https://raw.githubusercontent.com/flaafix/AetrisVPN/refs/heads/main/AetrisVPN.txt" \
+            -o proxies.txt
+
+      - name: Download list
+        run: |
+          curl -L --fail \
+            "https://raw.githubusercontent.com/flaafix/AetrisVPN-black-list/refs/heads/main/configs.txt" \
             -o proxies.txt
 
       - name: Filter list
